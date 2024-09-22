@@ -11,6 +11,7 @@ LRESULT CALLBACK ScrollProc (HWND, UINT, WPARAM, LPARAM) ;
 int     idFocus ;
 WNDPROC OldScroll[3] ;
 
+//winapp的入口函数
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
                     PSTR szCmdLine, int iCmdShow)
 {
@@ -30,13 +31,14 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
      wndclass.lpszMenuName  = NULL ;
      wndclass.lpszClassName = szAppName ;
      
+     //1、注册windows 应用类
      if (!RegisterClass (&wndclass))
      {
           MessageBox (NULL, TEXT ("This program requires Windows NT!"),
                       szAppName, MB_ICONERROR) ;
           return 0 ;
      }
-     
+     //2、创建窗口
      hwnd = CreateWindow (szAppName, TEXT ("Color Scroll"),
                           WS_OVERLAPPEDWINDOW,
                           CW_USEDEFAULT, CW_USEDEFAULT,
@@ -45,7 +47,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
      
      ShowWindow (hwnd, iCmdShow) ;
      UpdateWindow (hwnd) ;
-     
+     //3、进入消息循环
      while (GetMessage (&msg, NULL, 0, 0))
      {
           TranslateMessage (&msg) ;
@@ -53,6 +55,8 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
      }
      return msg.wParam ;
 }
+//每个应用都会有一个窗口执行函数，通过消息与系统进行通信。
+//因此在生命周期里插入合适的用户的业务逻辑以实现用户需求
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -70,6 +74,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
      
      switch (message)
      {
+         //在创建window阶段，创建好用户的3个scrollbar以及响应的标签
+         //（显示red/blue/green以及底下显示对应的数值）
      case WM_CREATE :
           hInstance = (HINSTANCE) GetWindowLong (hwnd, GWL_HINSTANCE) ;
           
@@ -88,8 +94,8 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                
                hwndScroll[i] = CreateWindow (TEXT ("scrollbar"), NULL,
                                              WS_CHILD | WS_VISIBLE | 
-                                             WS_TABSTOP | SBS_VERT,
-                                             0, 0, 0, 0, 
+                                             WS_TABSTOP | SBS_VERT, // 窗口样式  
+                                             0, 0, 0, 0, // 控件的位置和大小（x, y, width, height）
                                              hwnd, (HMENU) i, hInstance, NULL) ;
                
                SetScrollRange (hwndScroll[i], SB_CTL, 0, 255, FALSE) ;
@@ -112,7 +118,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                                              0, 0, 0, 0,
                                              hwnd, (HMENU) (i + 6), 
                                              hInstance, NULL) ;
-               
+               //修改WndProc为ScrollProc
                OldScroll[i] = (WNDPROC) SetWindowLong (hwndScroll[i], 
                                              GWL_WNDPROC, (LONG) ScrollProc) ;
                
@@ -129,7 +135,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
           cxClient = LOWORD (lParam) ;
           cyClient = HIWORD (lParam) ;
           
-          SetRect (&rcColor, cxClient / 4, 0, cxClient, cyClient) ;
+          SetRect (&rcColor, cxClient / 2, 0, cxClient, cyClient) ;
           
           MoveWindow (hwndRect, 0, 100, cxClient / 2, cyClient-200, TRUE) ;
           
